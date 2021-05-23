@@ -195,7 +195,103 @@ void reconnect() {
     }
   }
 }
+//***********
+//*       CALLBACK        *
+//***********
 
+void callback(char* topic, byte* payload, unsigned int length) {
+  String incoming = "";
+  Serial.print("Mensaje recibido desde -> ");
+  Serial.print(topic);
+  Serial.println("");
+  for (int i = 0; i < length; i++) {
+    incoming += (char)payload[i];
+  }
+  incoming.trim();
+  String readTopic = topic;
+  top = readTopic.substring(16, 40);
+  mens = incoming;
+  Serial.println("Mensaje -> " + incoming);
+
+}
+
+void refri(float temp, float limite) {
+  if (temp >= limite) {
+    //Serial.println("Temperatura Excedida");
+    digitalWrite(cooler, HIGH);
+    value3 = "Encendido";
+  }
+  else {
+    //Serial.println("Temperatura Normal");
+    digitalWrite(cooler, LOW);
+    value3 = "Encendido";
+  }
+}
+
+void leerSubscripcion() {
+  value1 = top;
+  value2 = mens;
+  
+  if (top == "puerta") {
+    Serial.println(mens);
+    if (mens == "abrir") {
+      Serial.println(mens);
+      servo1.write(120);
+      stateServo = true;
+      top = "";
+      Serial.print(stateServo);
+      email();
+    }
+    else if (mens = "cerrar") {
+      Serial.println(mens);
+      servo1.write(0);
+      stateServo = false;
+      top = "";
+      email();
+    } else {
+      Serial.println("Esta definición no existe");
+      top = "";
+      
+    }
+  } else if (top == "modificar-temperatura") {
+    if (mens.toInt() > 0 && mens.toInt() <= 70) {
+      tempLimit = mens.toInt();
+      Serial.println(tempLimit);
+      top = "";
+      refri(t, tempLimit);
+      email();
+    } else {
+      Serial.println("TEMPERATURA NO PERMITIDA");
+      top = "";
+    }
+    
+  }
+  
+  myTestCall();
+}
+
+void email() {
+  if (event) {
+    request = "GET /trigger/" + eventName + "/with/key/" + apiKey + "/?value1="+value1+"&value2="+value2+"&value3="+value3;
+    Serial.print("connecting to ");
+    Serial.println(host);
+
+    WiFiClient client;
+    const int httpPort = 80;
+    if (!client.connect(host, httpPort)) {
+      Serial.println("connection failed");
+      return;
+    }
+
+    Serial.print("Requesting: ");
+    Serial.println(request);
+    client.print(request + " HTTP/1.1\r\n" +
+                 "Host: " + host + "\r\n"   +
+                 "Connection: close\r\n"    +
+                 "\r\n" );
+    event = false; // ensure request once
+  }
+}
 
 
 
