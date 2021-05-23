@@ -150,3 +150,53 @@ void setup_wifi() {
   Serial.println("Dirección IP: ");
   Serial.println(WiFi.localIP());
 }
+
+//***********
+//*    CONEXION MQTT      *
+//***********
+
+void reconnect() {
+
+  while (!client.connected()) {
+    Serial.print("Intentando conexión Mqtt...");
+    // Creamos un cliente ID
+    String clientId = "IOTICOS_H_W_";
+    clientId += String(random(0xffff), HEX);
+    // Intentamos conectar
+    if (client.connect(clientId.c_str(), mqtt_user, mqtt_pass)) {
+      Serial.println("Conectado!");
+      // Nos suscribimos
+      if (client.subscribe(root_topic_subscribe)) {
+        Serial.println("Suscripcion raíz");
+      } else {
+        Serial.println("falló Suscripción raíz");
+      }
+      if (client.subscribe(root_topic_subscribe_temperatura)) {
+        Serial.println("Suscripcion temperatura");
+      } else {
+        Serial.println("falló Suscripción temperatura");
+      }
+      if (client.subscribe(root_topic_subscribe_humedad)) {
+        Serial.println("Suscripcion humedad");
+      } else {
+        Serial.println("falló Suscripción humedad");
+      }
+      if (client.subscribe(root_topic_subscribe_puerta)) {
+        Serial.println("Suscripcion puerta");
+      } else {
+        Serial.println("falló Suscripción puerta");
+      }
+
+    } else {
+      Serial.print("falló :( con error -> ");
+      Serial.print(client.state());
+      Serial.println(" Intentamos de nuevo en 5 segundos");
+      delay(5000);
+    }
+  }
+}
+
+
+
+
+
